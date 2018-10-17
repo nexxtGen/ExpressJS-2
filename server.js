@@ -1,7 +1,11 @@
 // vars section
 var express = require('express');
+var passport = require('passport');
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var config = require('./config');
 var app = express();
-var path = require('path')
+var path = require('path');
+var googleProfile = {};
 
 app.set('view engine', 'pug'); //mówi , że będziemy używać Puga jako kreatora widoków
 app.set('views','./views'); // mowi , że widoki (views) będziemy trzymać w katalogu /views.
