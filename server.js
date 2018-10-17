@@ -9,38 +9,61 @@ var googleProfile = {};
 
 app.set('view engine', 'pug'); //mówi , że będziemy używać Puga jako kreatora widoków
 app.set('views','./views'); // mowi , że widoki (views) będziemy trzymać w katalogu /views.
+app.use(passport.initialize());
+app.use(passport.session());
 
-// App section
-app.use('/', function(req, res, next) {
-    console.log('Sprawdzam czy user jest zalogowany');
-    next();
-});
-app.use('/', function(req, res, next) {
-    console.log('Jeśli tak- Sprawdzam jego poziom uprawnień i Przekierowywuję do panelu usera. Jeśli nie- wyswietlam stronę główną z form do zalogowania');
-    next();
+
+// Passport config
+passport.serializeUser(function(user, done) {
+    done(null, user);
+  });
+  
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+  });
+
+
+//
+passport.use(new GoogleStrategy({
+    clientID: config.GOOGLE_CLIENT_ID,
+    clientSecret:config.GOOGLE_CLIENT_SECRET,
+    callbackURL: config.CALLBACK_URL
+},
+function(accessToken, refreshToken, profile, cb) {
+    googleProfile = {
+        id: profile.id,
+        displayName: profile.displayName
+    };
+    cb(null, profile);
+}
+));
+
+//app routes
+app.get('/', function(req, res){
+    res.render('index', { user: req.user });
 });
 
-app.get('/', function (req, res) {
-    res.render('index')
+
+app.get('/logged', function(req, res){
+    res.render('user-panel', { user: googleProfile, userName: googleProfile.displayName });
+    console.log('uzytkownik:', googleProfile.displayName);
 });
 
-app.get('/auth/snowflakes.jpg', function (req, res) {
+app.get('/snowflakes.jpg', function (req, res) {
     const image = path.join(__dirname, 'views', 'snowflakes.jpg');
     res.sendFile(image);  
 });
 
-app.get('/auth/google', function (req, res) {
-    console.log('hasło: ', req.query)
-    if (req.query.password != '') {
-        res.render('user-panel', {
-            email: req.query.email,
-            pass: req.query.password
-        });
-    } else {
-        res.send('Wróc i podaj nam swoje hasło.');
-    }
-    
-});
+//Passport routes
+app.get('/auth/google',
+passport.authenticate('google', {
+scope : ['profile', 'email']
+}));
+app.get('/auth/google/callback',
+    passport.authenticate('google', {
+        successRedirect : '/logged',
+        failureRedirect: '/'
+    }));
 
 var server = app.listen(3000, 'localhost', function() {
     var host = server.address().address;
