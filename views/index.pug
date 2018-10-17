@@ -6,13 +6,7 @@ html
     include ./header.pug
         h4 Welcome!
         p Log in to your user panel
-        form(method='GET' action='/auth/google') 
-            div.form-group
-                label(for='email') E-mail:
-                input#email(type='email', placeholder='name@email.com' name='email')
-            div.form-group
-                label(for='pass') Password:
-                input#pass(type='password' name='password')
+        form(method='GET' action='/auth/google')             
             button.btn(type='submit') Sign up
         p test
     include ./footer.pug
